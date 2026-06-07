@@ -1,1 +1,2 @@
 # EndlessCity-Light
+这是EndlessCity的网页测试渠道用于尝试建立经济循环以及对比各种经济循环之间的不同
