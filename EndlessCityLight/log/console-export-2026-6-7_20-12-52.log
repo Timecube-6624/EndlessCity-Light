@@ -1,0 +1,90 @@
+Uncaught SyntaxError: redeclaration of const popFactor game.js:1222:11note: Previously declared at line 1193, column 11game.js:1193:11
+[DBG] initGame_start: 
+Object { hasGame: false, hasPolicies: true, hasUI: true }
+app.js:7:13
+[DBG] initDOMElements_start: 
+Object {  }
+app.js:7:13
+[DBG] initDOMElements_end: 
+Object { setupMap: true, mapMarker: true, inputLng: true, inputLat: true }
+app.js:7:13
+Uncaught ReferenceError: Game is not defined
+    renderSliders http://localhost:8080/js/policies.js:226
+    renderSliders http://localhost:8080/js/policies.js:225
+    initGame http://localhost:8080/js/app.js:90
+    <anonymous> http://localhost:8080/js/app.js:431
+policies.js:226:30
+[DBG] DOMContentLoaded: 
+Object { hasStartGame: true, hasInitGame: true, hasDbgLog: true }
+app.js:7:13
+[DBG] initGame_start: 
+Object { hasGame: false, hasPolicies: true, hasUI: true }
+app.js:7:13
+[DBG] initDOMElements_start: 
+Object {  }
+app.js:7:13
+[DBG] initDOMElements_end: 
+Object { setupMap: true, mapMarker: true, inputLng: true, inputLat: true }
+app.js:7:13
+[DBG] global_error: 
+Object { msg: "ReferenceError: Game is not defined", url: "http://localhost:8080/js/policies.js", line: 226, col: 30, error: "renderSliders/<@http://localhost:8080/js/policies.js:226:30\nrenderSliders@http://localhost:8080/js/policies.js:225:13\ninitGame@http://localhost:8080/js/app.js:90:14\n@http://localhost:8080/index.html:933:13\nEventListener.handleEvent*@http://localhost:8080/index.html:927:18\n" }
+app.js:7:13
+Uncaught ReferenceError: Game is not defined
+    renderSliders http://localhost:8080/js/policies.js:226
+    renderSliders http://localhost:8080/js/policies.js:225
+    initGame http://localhost:8080/js/app.js:90
+    <anonymous> http://localhost:8080/index.html:933
+    EventListener.handleEvent* http://localhost:8080/index.html:927
+policies.js:226:30
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+XHROPTIONS
+http://localhost:9999/logs
+CORS Missing Allow Origin
+
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 头缺少 'Access-Control-Allow-Origin'）。状态码：501。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+已拦截跨源请求：同源策略禁止读取位于 http://localhost:9999/logs 的远程资源。（原因：CORS 请求未能成功）。状态码：(null)。
+GET
+http://localhost:8080/favicon.ico
+[HTTP/1 404 File not found 0ms]
+

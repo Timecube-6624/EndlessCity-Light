@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>都市模拟 - 经济与人口</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- 地图选择界面 -->
+    <div class="setup-overlay" id="setupOverlay">
+        <div class="setup-panel">
+            <h1 class="setup-title">都市模拟器</h1>
+            <p class="setup-subtitle">选择城市位置以确定日出日落时间和季节变化</p>
+            <div class="setup-map" id="setupMap">
+                <div class="map-grid"></div>
+                <div class="map-grid-lines"></div>
+                <span class="map-label top">90°N</span>
+                <span class="map-label bottom">90°S</span>
+                <span class="map-label left">180°W</span>
+                <span class="map-label right">180°E</span>
+                <div class="map-marker" id="mapMarker" style="left: 50%; top: 50%;"></div>
+            </div>
+            <div class="setup-inputs">
+                <div class="input-group">
+                    <span class="input-label">经度 (Longitude)</span>
+                    <div class="input-row">
+                        <input type="number" class="input-field" id="inputLng" value="116.4" step="0.1" min="-180" max="180">
+                        <span class="input-unit">°</span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <span class="input-label">纬度 (Latitude)</span>
+                    <div class="input-row">
+                        <input type="number" class="input-field" id="inputLat" value="39.9" step="0.1" min="-90" max="90">
+                        <span class="input-unit">°</span>
+                    </div>
+                </div>
+            </div>
+            <div class="setup-preview" id="setupPreview">
+                <div class="preview-row"><span class="preview-label">时区</span><span class="preview-value" id="previewTimezone">UTC+8</span></div>
+                <div class="preview-row"><span class="preview-label">今日日出</span><span class="preview-value sunrise" id="previewSunrise">06:12</span></div>
+                <div class="preview-row"><span class="preview-label">今日日落</span><span class="preview-value sunset" id="previewSunset">18:24</span></div>
+                <div class="preview-row"><span class="preview-label">日照时长</span><span class="preview-value" id="previewDaylight">12小时12分</span></div>
+            </div>
+            <button class="setup-btn" onclick="startGame()">开始模拟</button>
+        </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="header-left">
+                <span class="logo">都市模拟</span>
+                <div class="header-center">
+                    <button class="nav-btn active" onclick="switchView('sim')">模拟</button>
+                    <button class="nav-btn" onclick="switchView('data')">数据</button>
+                    <button class="nav-btn" onclick="openModal('links')">外部链接</button>
+                    <button class="nav-btn" onclick="openModal('facilities')">服务设施</button>
+                    <button class="nav-btn" onclick="openModal('settings')">设置</button>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="time-display">
+                    <span class="time-date" id="timeDate">第1年 1月1日</span>
+                    <span class="time-clock" id="timeClock">00:00</span>
+                    <span class="time-season" id="timeSeason">春</span>
+                    <span class="sun-indicator" id="sunIndicator">
+                        <span class="sun-icon sunrise" id="sunriseIcon">☀</span>
+                        <span class="sun-time" id="sunriseTime">06:12</span>
+                        <span class="sun-icon sunset" id="sunsetIcon">☾</span>
+                        <span class="sun-time" id="sunsetTime">18:24</span>
+                    </span>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span id="themeIcon">◐</span>
+                    <span id="themeText">深色</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="hero-section">
+            <div class="hero-card"><span class="hero-label">年份</span><span class="hero-value" id="year" style="color:var(--content-population)">1</span></div>
+            <div class="hero-card"><span class="hero-label">人口</span><span class="hero-value" id="population" style="color:var(--content-population)">10,000</span><span class="hero-sub" id="popDetail">常住+游客</span></div>
+            <div class="hero-card"><span class="hero-label">财政</span><span class="hero-value" id="money" style="color:var(--content-money)">50,000</span><span class="hero-sub" id="moneyChange">+2,000</span></div>
+            <div class="hero-card"><span class="hero-label">幸福</span><span class="hero-value" id="happiness" style="color:var(--content-happiness)">72</span><span class="hero-sub" id="happyTrend">稳定</span></div>
+            <div class="hero-card"><span class="hero-label">GDP</span><span class="hero-value" id="gdp" style="color:var(--content-gdp)">1,200</span><span class="hero-sub" id="gdpChange">+3.2%</span></div>
+            <div class="hero-card"><span class="hero-label">增长</span><span class="hero-value" id="growth">+3.2%</span><span class="hero-sub">年率</span></div>
+        </section>
+
+        <main class="main-content">
+            <div class="left-panel">
+                <div class="policy-section">
+                    <div class="section-header">
+                        <span class="section-title">政策调节</span>
+                        <div class="tab-group">
+                            <button class="tab-btn active" onclick="switchTab('tax')">税率</button>
+                            <button class="tab-btn" onclick="switchTab('economy')">经济</button>
+                            <button class="tab-btn" onclick="switchTab('social')">社会</button>
+                            <button class="tab-btn" onclick="switchTab('infra')">基建</button>
+                        </div>
+                    </div>
+                    <div class="slider-controls" id="sliderControls"></div>
+                    <div class="active-policies" id="activePolicies"><span class="no-policies">暂无调节项</span></div>
+                </div>
+            </div>
+
+            <aside class="right-sidebar">
+                <!-- 城市功能区 -->
+                <div class="zone-section">
+                    <div class="section-title">城市功能区占比</div>
+                    <div class="zone-bars" id="zoneBars">
+                        <div class="zone-bar-item"><span class="zone-label">住宅</span><div class="zone-track"><div class="zone-fill residential" style="width:35%"></div></div><span class="zone-value">35%</span></div>
+                        <div class="zone-bar-item"><span class="zone-label">商业</span><div class="zone-track"><div class="zone-fill commercial" style="width:20%"></div></div><span class="zone-value">20%</span></div>
+                        <div class="zone-bar-item"><span class="zone-label">工业</span><div class="zone-track"><div class="zone-fill industrial" style="width:25%"></div></div><span class="zone-value">25%</span></div>
+                        <div class="zone-bar-item"><span class="zone-label">公共</span><div class="zone-track"><div class="zone-fill public" style="width:10%"></div></div><span class="zone-value">10%</span></div>
+                        <div class="zone-bar-item"><span class="zone-label">绿地</span><div class="zone-track"><div class="zone-fill green" style="width:10%"></div></div><span class="zone-value">10%</span></div>
+                    </div>
+                </div>
+
+                <!-- 人口结构 -->
+                <div class="population-section">
+                    <div class="section-title">人口结构</div>
+                    <div class="pop-bars">
+                        <div class="pop-bar-item"><span class="pop-label">劳动力</span><div class="pop-track"><div class="pop-fill workers" id="workerBar" style="width:65%"></div></div><span class="pop-value" id="workerCount">6,500</span></div>
+                        <div class="pop-bar-item"><span class="pop-label">老年人</span><div class="pop-track"><div class="pop-fill elders" id="elderBar" style="width:20%"></div></div><span class="pop-value" id="elderCount">2,000</span></div>
+                        <div class="pop-bar-item"><span class="pop-label">儿童</span><div class="pop-track"><div class="pop-fill children" id="childBar" style="width:15%"></div></div><span class="pop-value" id="childCount">1,500</span></div>
+                        <div class="pop-bar-item"><span class="pop-label">游客</span><div class="pop-track"><div class="pop-fill tourists" id="touristBar" style="width:5%;background:var(--content-gdp)"></div></div><span class="pop-value" id="touristCount">500</span></div>
+                    </div>
+                </div>
+
+                <!-- 劳动力市场 -->
+                <div class="labor-section">
+                    <div class="section-title">劳动力市场</div>
+                    <div class="labor-stats">
+                        <div class="labor-item">
+                            <span class="labor-label">劳动力总量</span>
+                            <span class="labor-value" id="laborForceCount">0</span>
+                        </div>
+                        <div class="labor-item">
+                            <span class="labor-label">失业率</span>
+                            <span class="labor-value" id="unemploymentRate">0%</span>
+                        </div>
+                        <div class="labor-item">
+                            <span class="labor-label">工业就业</span>
+                            <span class="labor-value" id="industryEmploymentCount">0</span>
+                        </div>
+                        <div class="labor-item">
+                            <span class="labor-label">工业占比</span>
+                            <span class="labor-value" id="industryEmploymentRatio">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 工业就业细分 -->
+                <div class="industry-employment-section">
+                    <div class="section-title">工业就业分布</div>
+                    <div class="employment-bars">
+                        <div class="employment-bar-item">
+                            <span class="employment-label">制造业</span>
+                            <span class="employment-value" id="manufacturingWorkers">0</span>
+                        </div>
+                        <div class="employment-bar-item">
+                            <span class="employment-label">重工业</span>
+                            <span class="employment-value" id="heavyIndustryWorkers">0</span>
+                        </div>
+                        <div class="employment-bar-item">
+                            <span class="employment-label">高新技术</span>
+                            <span class="employment-value" id="hiTechWorkers">0</span>
+                        </div>
+                        <div class="employment-bar-item">
+                            <span class="employment-label">工业总就业</span>
+                            <span class="employment-value" id="totalIndustryWorkers">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技术进步 -->
+                <div class="technology-section">
+                    <div class="section-title">技术进步</div>
+                    <div class="tech-stats">
+                        <div class="tech-item">
+                            <span class="tech-label">自动化水平</span>
+                            <span class="tech-value" id="automationLevel">0%</span>
+                        </div>
+                        <div class="tech-item">
+                            <span class="tech-label">劳动生产率</span>
+                            <span class="tech-value" id="laborProductivity">1.00x</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 大板块指标 -->
+                <div class="sector-section">
+                    <div class="section-title">产业板块</div>
+                    <div class="sector-bars">
+                        <div class="sector-bar-item"><span class="sector-label">工业</span><div class="sector-track"><div class="sector-fill" id="industryBar" style="width:55%"></div></div><span class="sector-value" id="industryValue">55</span></div>
+                        <div class="sector-bar-item"><span class="sector-label">商业</span><div class="sector-track"><div class="sector-fill" id="commerceBar" style="width:65%"></div></div><span class="sector-value" id="commerceValue">65</span></div>
+                        <div class="sector-bar-item"><span class="sector-label">服务业</span><div class="sector-track"><div class="sector-fill" id="serviceBar" style="width:45%"></div></div><span class="sector-value" id="serviceValue">45</span></div>
+                        <div class="sector-bar-item"><span class="sector-label">农业</span><div class="sector-track"><div class="sector-fill" id="agricultureBar" style="width:30%"></div></div><span class="sector-value" id="agricultureValue">30</span></div>
+                        <div class="sector-bar-item"><span class="sector-label">旅游</span><div class="sector-track"><div class="sector-fill" id="tourismBar" style="width:40%"></div></div><span class="sector-value" id="tourismValue">40</span></div>
+                    </div>
+                </div>
+
+                <!-- 发电量监控 -->
+                <div class="power-section">
+                    <div class="section-title">能源监控</div>
+                    <div class="power-stats">
+                        <div class="power-main">
+                            <div class="power-label">总供给</div>
+                            <div class="power-value" id="powerTotal">150</div>
+                            <div class="power-unit">MW</div>
+                        </div>
+                        <div class="power-purchase">
+                            <span class="purchase-label">购买: </span>
+                            <span class="purchase-value" id="powerPurchase">0</span>
+                            <span class="purchase-price">(5/单位)</span>
+                        </div>
+                        <div class="power-bar">
+                            <div class="power-track">
+                                <div class="power-fill consumption" id="powerConsumption" style="width:80%"></div>
+                                <div class="power-fill generation" id="powerGeneration" style="width:100%"></div>
+                            </div>
+                            <div class="power-legend">
+                                <span>消耗: <span id="powerConsume">120</span> MW</span>
+                                <span>储能: <span id="powerStorage">50</span>%</span>
+                            </div>
+                        </div>
+                        <div class="power-sources">
+                            <div class="source-item"><span class="source-color coal"></span><span class="source-label">燃煤</span><span class="source-value" id="powerCoal">60</span></div>
+                            <div class="source-item"><span class="source-color hydro"></span><span class="source-label">水力</span><span class="source-value" id="powerHydro">40</span></div>
+                            <div class="source-item"><span class="source-color solar"></span><span class="source-label">太阳能</span><span class="source-value" id="powerSolar">25</span></div>
+                            <div class="source-item"><span class="source-color wind"></span><span class="source-label">风力</span><span class="source-value" id="powerWind">15</span></div>
+                            <div class="source-item"><span class="source-color nuclear"></span><span class="source-label">核能</span><span class="source-value" id="powerNuclear">10</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预算管理 -->
+                <div class="budget-section">
+                    <div class="section-title">预算管理</div>
+                    <div class="budget-total">
+                        <span class="budget-label">总预算</span>
+                        <span class="budget-value" id="budgetTotal">7,100</span>
+                        <span class="budget-unit">/月</span>
+                    </div>
+                    <div class="budget-items">
+                        <div class="budget-item">
+                            <span class="budget-name">基础设施</span>
+                            <input type="range" class="budget-slider" id="budgetInfra" min="0" max="5000" value="2000" oninput="updateBudget('infrastructure', this.value)">
+                            <span class="budget-amount" id="budgetInfraAmount">2,000</span>
+                        </div>
+                        <div class="budget-item">
+                            <span class="budget-name">教育</span>
+                            <input type="range" class="budget-slider" id="budgetEdu" min="0" max="5000" value="1500" oninput="updateBudget('education', this.value)">
+                            <span class="budget-amount" id="budgetEduAmount">1,500</span>
+                        </div>
+                        <div class="budget-item">
+                            <span class="budget-name">医疗</span>
+                            <input type="range" class="budget-slider" id="budgetHealth" min="0" max="5000" value="1200" oninput="updateBudget('healthcare', this.value)">
+                            <span class="budget-amount" id="budgetHealthAmount">1,200</span>
+                        </div>
+                        <div class="budget-item">
+                            <span class="budget-name">公共安全</span>
+                            <input type="range" class="budget-slider" id="budgetSafety" min="0" max="3000" value="800" oninput="updateBudget('publicSafety', this.value)">
+                            <span class="budget-amount" id="budgetSafetyAmount">800</span>
+                        </div>
+                        <div class="budget-item">
+                            <span class="budget-name">环境保护</span>
+                            <input type="range" class="budget-slider" id="budgetEnv" min="0" max="3000" value="600" oninput="updateBudget('environment', this.value)">
+                            <span class="budget-amount" id="budgetEnvAmount">600</span>
+                        </div>
+                        <div class="budget-item">
+                            <span class="budget-name">社会福利</span>
+                            <input type="range" class="budget-slider" id="budgetWelfare" min="0" max="5000" value="1000" oninput="updateBudget('socialWelfare', this.value)">
+                            <span class="budget-amount" id="budgetWelfareAmount">1,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 财政明细 -->
+                <div class="finance-section">
+                    <div class="section-title">财政明细</div>
+                    <div class="finance-container">
+                        <!-- 收支概览 -->
+                        <div class="finance-overview">
+                            <div class="finance-total">
+                                <span class="finance-total-label">本月结余</span>
+                                <span class="finance-total-value" id="financeBalance">+0</span>
+                            </div>
+                            <div class="finance-bar">
+                                <div class="finance-income-bar" id="financeIncomeBar" style="width:70%"></div>
+                                <div class="finance-expense-bar" id="financeExpenseBar" style="width:30%"></div>
+                            </div>
+                            <div class="finance-summary">
+                                <span class="finance-income-text"><span class="income-dot"></span>收入 <span id="financeTotalIncome">0</span></span>
+                                <span class="finance-expense-text"><span class="expense-dot"></span>支出 <span id="financeTotalExpense">0</span></span>
+                            </div>
+                        </div>
+                        <!-- 收入明细 -->
+                        <div class="finance-details">
+                            <div class="finance-detail-title income">
+                                <span>收入明细</span>
+                            </div>
+                            <div class="finance-detail-items">
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">基础收入</span>
+                                    <span class="finance-detail-value" id="incomeBase">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">工业税收</span>
+                                    <span class="finance-detail-value" id="incomeIndustry">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">商业税收</span>
+                                    <span class="finance-detail-value" id="incomeCommerce">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">居住税收</span>
+                                    <span class="finance-detail-value" id="incomeResidential">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">办公税收</span>
+                                    <span class="finance-detail-value" id="incomeOffice">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">贸易收入</span>
+                                    <span class="finance-detail-value" id="incomeTrade">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">旅游收入</span>
+                                    <span class="finance-detail-value" id="incomeTourism">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 支出明细 -->
+                        <div class="finance-details">
+                            <div class="finance-detail-title expense">
+                                <span>支出明细</span>
+                            </div>
+                            <div class="finance-detail-items">
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">基础支出</span>
+                                    <span class="finance-detail-value expense" id="expenseBase">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">社会福利</span>
+                                    <span class="finance-detail-value expense" id="expenseWelfare">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">预算支出</span>
+                                    <span class="finance-detail-value expense" id="expenseBudget">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">医疗支出</span>
+                                    <span class="finance-detail-value expense" id="expenseHealthcare">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">教育支出</span>
+                                    <span class="finance-detail-value expense" id="expenseEducation">0</span>
+                                </div>
+                                <div class="finance-detail-item">
+                                    <span class="finance-detail-label">能源购买</span>
+                                    <span class="finance-detail-value expense" id="expenseEnergy">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 建设进度 -->
+                <div class="construction-section">
+                    <div class="section-title">建设进度</div>
+                    <div class="construction-items">
+                        <div class="construction-item">
+                            <span class="construction-name">绿化建设</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constGreen" style="width:0%"></div>
+                            </div>
+                            <span class="construction-percent" id="constGreenPercent">0%</span>
+                        </div>
+                        <div class="construction-item">
+                            <span class="construction-name">道路建设</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constRoads" style="width:25%"></div>
+                            </div>
+                            <span class="construction-percent" id="constRoadsPercent">25%</span>
+                        </div>
+                        <div class="construction-item">
+                            <span class="construction-name">住房建设</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constHousing" style="width:30%"></div>
+                            </div>
+                            <span class="construction-percent" id="constHousingPercent">30%</span>
+                        </div>
+                        <div class="construction-item">
+                            <span class="construction-name">发电厂</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constPower" style="width:0%"></div>
+                            </div>
+                            <span class="construction-percent" id="constPowerPercent">0%</span>
+                        </div>
+                        <div class="construction-item">
+                            <span class="construction-name">医院</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constHospital" style="width:45%"></div>
+                            </div>
+                            <span class="construction-percent" id="constHospitalPercent">45%</span>
+                        </div>
+                        <div class="construction-item">
+                            <span class="construction-name">学校</span>
+                            <div class="construction-bar">
+                                <div class="construction-fill" id="constSchool" style="width:60%"></div>
+                            </div>
+                            <span class="construction-percent" id="constSchoolPercent">60%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 城市需求（简化） -->
+                <div class="demand-section">
+                    <div class="section-title">城市需求</div>
+                    <div class="demand-summary">
+                        <div class="demand-item"><span class="demand-label">基础需求</span><span class="demand-value" id="basicDemand">72%</span></div>
+                        <div class="demand-item"><span class="demand-label">发展需求</span><span class="demand-value" id="developDemand">58%</span></div>
+                        <div class="demand-item"><span class="demand-label">娱乐需求</span><span class="demand-value" id="leisureDemand">45%</span></div>
+                    </div>
+                </div>
+
+                <!-- 城市指标 -->
+                <div class="stats-section">
+                    <div class="section-title">城市指标</div>
+                    <div class="stats-grid">
+                        <div class="stat-row"><span class="stat-label">教育水平</span><span class="stat-value" id="education">72</span></div>
+                        <div class="stat-row"><span class="stat-label">医疗水平</span><span class="stat-value" id="health">68</span></div>
+                        <div class="stat-row"><span class="stat-label">环境质量</span><span class="stat-value" id="environment">75</span></div>
+                        <div class="stat-row"><span class="stat-label">治安状况</span><span class="stat-value" id="safety">80</span></div>
+                    </div>
+                </div>
+
+                <!-- 事件日志 -->
+                <div class="log-section">
+                    <div class="section-title">事件日志</div>
+                    <div class="log-list" id="logList"><div class="log-item"><span class="log-time">第1年1月1日</span> 欢迎来到都市模拟器</div></div>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="footer">
+            <div class="time-controls">
+                <button class="speed-btn" onclick="setSpeed(0.5)">0.5x</button>
+                <button class="speed-btn" onclick="setSpeed(1)">1x</button>
+                <button class="speed-btn active" onclick="setSpeed(2)">2x</button>
+                <button class="speed-btn" onclick="setSpeed(5)">5x</button>
+                <button class="speed-btn" onclick="setSpeed(10)">10x</button>
+                <button class="speed-btn" onclick="setSpeed(50)">50x</button>
+                <button class="speed-btn" onclick="setSpeed(100)">100x</button>
+                <button class="play-btn" onclick="toggleTime()" id="playBtn">▶</button>
+            </div>
+            <span class="time-info" id="timeInfo">1秒 = 30分钟</span>
+            <button class="action-btn" onclick="saveGame()">保存</button>
+            <button class="action-btn" onclick="loadGame()">读取</button>
+            <button class="action-btn" onclick="resetGame()">重置</button>
+        </footer>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <span class="modal-title">设置</span>
+                <button class="modal-close" onclick="closeModal('settings')">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 设置菜单导航 -->
+                <div class="settings-nav">
+                    <div class="settings-nav-item active" onclick="switchSettingsTab('general')" data-tab="general">常规设置</div>
+                    <div class="settings-nav-item" onclick="switchSettingsTab('about')" data-tab="about">关于</div>
+                </div>
+                
+                <!-- 常规设置面板 -->
+                <div class="settings-tab-panel active" id="settingsTab-general">
+                    <div class="settings-group">
+                        <div class="settings-group-title">初始参数</div>
+                        <div class="settings-item"><span class="settings-item-label">初始人口</span><input type="number" class="settings-input" id="initPop" value="10000"></div>
+                        <div class="settings-item"><span class="settings-item-label">初始资金</span><input type="number" class="settings-input" id="initMoney" value="50000"></div>
+                        <div class="settings-item"><span class="settings-item-label">初始幸福度</span><input type="number" class="settings-input" id="initHappy" value="72" min="0" max="100"></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">模拟参数</div>
+                        <div class="settings-item"><span class="settings-item-label">出生率 (%)</span><input type="number" class="settings-input" id="setBirthRate" value="0.8" step="0.1"></div>
+                        <div class="settings-item"><span class="settings-item-label">死亡率 (%)</span><input type="number" class="settings-input" id="setDeathRate" value="0.5" step="0.1"></div>
+                        <div class="settings-item"><span class="settings-item-label">基础收入</span><input type="number" class="settings-input" id="setIncome" value="3500"></div>
+                        <div class="settings-item"><span class="settings-item-label">基础支出</span><input type="number" class="settings-input" id="setExpense" value="1500"></div>
+                    </div>
+                    <button class="settings-btn" onclick="applySettings()">应用设置</button>
+                    <button class="settings-btn secondary" onclick="resetSettings()">恢复默认</button>
+                </div>
+                
+                <!-- 关于面板 -->
+                <div class="settings-tab-panel" id="settingsTab-about">
+                    <div class="about-version">
+                        <span class="version-label">当前版本</span>
+                        <span class="version-number">v0.7.3</span>
+                    </div>
+                    <div class="about-desc">
+                        都市模拟器是一个基于经济和人口模拟的城市管理游戏。通过调节各项政策参数，观察城市的发展变化。
+                    </div>
+                    <div class="changelog">
+                        <div class="changelog-title">更新日志</div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.7.3</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>调整财政收入结构：降低过路费和车票价格，大幅提高维护费用</li>
+                                <li>修复人口增长过快问题，添加多重限制机制</li>
+                                <li>新增人口密度惩罚：人口接近上限时增长放缓</li>
+                                <li>新增资源约束惩罚：能源不足或资金短缺时影响人口增长</li>
+                                <li>降低游客流入速度和游客转居民转化率</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.7.2</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>修复能源设施在模拟开始后归零的问题</li>
+                                <li>优化公路交通流量计算系统 - 区分大型客车、小型客车、货车</li>
+                                <li>大型客车占用2通行单位，运载55名市民</li>
+                                <li>小型客车占用1通行单位，最多运载4名乘客</li>
+                                <li>货车占用2通行单位，运载货物并影响产业</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.7.1</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>修复人口增长问题 - 游客和户籍人口现在都能实时增长</li>
+                                <li>实时模拟中新增游客自然流入和游客转居民机制</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.7.0</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>修复人口显示小数问题</li>
+                                <li>新增日出日落颜色渐变动画（竖向渐变模拟太阳升降）</li>
+                                <li>优化顶栏数据速览显示：小数字号变小，整数加粗</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.6.0</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>新增能源购买系统 - 电力不足时自动从其他城市购买，价格优惠</li>
+                                <li>人口、财政等数据实现实时更新 - 每分钟（游戏时间）动态变化</li>
+                                <li>优化时间模拟逻辑 - 实时数据与月度结算分离</li>
+                                <li>能源监控面板新增购买电量显示</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.5.0</span>
+                            <span class="changelog-date">2026-06-08</span>
+                            <ul class="changelog-list">
+                                <li>修复时间倍率异常问题（0.5x过快，100x过慢）</li>
+                                <li>修复人口和财政数值固定不变问题</li>
+                                <li>新增建设进度系统，建设速度与预算挂钩</li>
+                                <li>新增完整的项目预算管理板块</li>
+                                <li>新增发电量实时监控数据模块</li>
+                                <li>新增多种发电类型（燃煤/水力/太阳能/风力/核能）</li>
+                                <li>完善人口增长和财政收支计算逻辑</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.4.0</span>
+                            <span class="changelog-date">2026-06-07</span>
+                            <ul class="changelog-list">
+                                <li>新增50x和100x时间加速</li>
+                                <li>修复时间流逝卡住问题</li>
+                                <li>新增分产业税率调节（工业/商业/居住/办公）</li>
+                                <li>政策调节现在会影响城市功能区占比</li>
+                                <li>绿化建设可增加绿地面积</li>
+                                <li>住房建设可增加住宅面积</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.3.0</span>
+                            <span class="changelog-date">2026-06-07</span>
+                            <ul class="changelog-list">
+                                <li>新增外部链接系统（公路/铁路/机场/港口）</li>
+                                <li>新增服务设施系统（教育/医疗/安全/休闲）</li>
+                                <li>外部链接和服务设施支持购买和升级</li>
+                                <li>新增设施维护费用和收入计算</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.2.0</span>
+                            <span class="changelog-date">2026-06-07</span>
+                            <ul class="changelog-list">
+                                <li>新增实时数据模拟系统</li>
+                                <li>新增财政收支实时计算</li>
+                                <li>新增能源系统基础框架</li>
+                            </ul>
+                        </div>
+                        <div class="changelog-item">
+                            <span class="changelog-version">v0.1.0</span>
+                            <span class="changelog-date">2026-06-07</span>
+                            <ul class="changelog-list">
+                                <li>项目初始化</li>
+                                <li>基础UI框架搭建</li>
+                                <li>政策调节系统实现</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部链接弹窗 -->
+    <div class="modal-overlay" id="linksModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <span class="modal-title">🌐 外部链接管理</span>
+                <button class="modal-close" onclick="closeModal('links')">×</button>
+            </div>
+            <div class="modal-body links-content">
+            <!-- 概览统计 -->
+            <div class="links-summary">
+                <div class="summary-card">
+                    <div class="summary-label">总容量</div>
+                    <div class="summary-value" id="linksTotalCapacity">0</div>
+                    <div class="summary-unit">人/小时</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">本月客流</div>
+                    <div class="summary-value" id="linksTotalUsers">0</div>
+                    <div class="summary-unit">人次</div>
+                </div>
+                <div class="summary-card revenue">
+                    <div class="summary-label">本月收入</div>
+                    <div class="summary-value" id="linksTotalRevenue">0</div>
+                    <div class="summary-unit">元</div>
+                </div>
+                <div class="summary-card cost">
+                    <div class="summary-label">月维护费</div>
+                    <div class="summary-value" id="linksTotalMaintenance">0</div>
+                    <div class="summary-unit">元</div>
+                </div>
+            </div>
+
+            <!-- 净收益 -->
+            <div class="links-profit">
+                <div class="profit-label">本月净收益</div>
+                <div class="profit-value" id="linksNetProfit">0</div>
+            </div>
+
+            <!-- 链接列表 -->
+            <div class="links-list">
+                <!-- 公路 -->
+                <div class="link-item" data-type="highway">
+                    <div class="link-header">
+                        <span class="link-icon">🛣️</span>
+                        <span class="link-name">公路运输</span>
+                        <span class="link-count">× <span id="linkHighwayCount">1</span></span>
+                    </div>
+                    <div class="link-details">
+                        <div class="detail-row">
+                            <span class="detail-label">容量</span>
+                            <span class="detail-value" id="linkHighwayCapacity">200</span>
+                            <span class="detail-unit">人/小时</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">使用率</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="linkHighwayUsage" style="width:60%"></div>
+                            </div>
+                            <span class="detail-value">60%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">票价</span>
+                            <input type="number" class="price-edit" id="editHighwayTicket" value="10" min="1" max="500" onchange="updateLinkPrice('highway', 'ticket', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">过路费</span>
+                            <input type="number" class="price-edit" id="editHighwayToll" value="15" min="0" max="200" onchange="updateLinkPrice('highway', 'toll', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row stats">
+                            <div class="stat-item">
+                                <span class="stat-label">月客流</span>
+                                <span class="stat-value" id="linkHighwayUsers">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">月收入</span>
+                                <span class="stat-value" id="linkHighwayRevenue">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">维护费</span>
+                                <span class="stat-value cost" id="linkHighwayMaintenance">2000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="link-actions">
+                        <button class="action-btn buy" onclick="purchaseLink('highway')">购买 (50,000元)</button>
+                    </div>
+                </div>
+
+                <!-- 铁路 -->
+                <div class="link-item" data-type="rail">
+                    <div class="link-header">
+                        <span class="link-icon">🚂</span>
+                        <span class="link-name">铁路运输</span>
+                        <span class="link-count">× <span id="linkRailCount">0</span></span>
+                    </div>
+                    <div class="link-details">
+                        <div class="detail-row">
+                            <span class="detail-label">容量</span>
+                            <span class="detail-value" id="linkRailCapacity">800</span>
+                            <span class="detail-unit">人/小时</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">使用率</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="linkRailUsage" style="width:70%"></div>
+                            </div>
+                            <span class="detail-value">70%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">票价</span>
+                            <input type="number" class="price-edit" id="editRailTicket" value="30" min="1" max="500" onchange="updateLinkPrice('rail', 'ticket', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">过路费</span>
+                            <span class="detail-value disabled">无</span>
+                            <span class="detail-unit"></span>
+                        </div>
+                        <div class="detail-row stats">
+                            <div class="stat-item">
+                                <span class="stat-label">月客流</span>
+                                <span class="stat-value" id="linkRailUsers">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">月收入</span>
+                                <span class="stat-value" id="linkRailRevenue">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">维护费</span>
+                                <span class="stat-value cost" id="linkRailMaintenance">8000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="link-actions">
+                        <button class="action-btn buy" onclick="purchaseLink('rail')">购买 (150,000元)</button>
+                    </div>
+                </div>
+
+                <!-- 航空 -->
+                <div class="link-item" data-type="air">
+                    <div class="link-header">
+                        <span class="link-icon">✈️</span>
+                        <span class="link-name">航空运输</span>
+                        <span class="link-count">× <span id="linkAirCount">0</span></span>
+                    </div>
+                    <div class="link-details">
+                        <div class="detail-row">
+                            <span class="detail-label">容量</span>
+                            <span class="detail-value" id="linkAirCapacity">400</span>
+                            <span class="detail-unit">人/小时</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">使用率</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="linkAirUsage" style="width:50%"></div>
+                            </div>
+                            <span class="detail-value">50%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">票价</span>
+                            <input type="number" class="price-edit" id="editAirTicket" value="500" min="50" max="2000" onchange="updateLinkPrice('air', 'ticket', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">过路费</span>
+                            <span class="detail-value disabled">无</span>
+                            <span class="detail-unit"></span>
+                        </div>
+                        <div class="detail-row stats">
+                            <div class="stat-item">
+                                <span class="stat-label">月客流</span>
+                                <span class="stat-value" id="linkAirUsers">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">月收入</span>
+                                <span class="stat-value" id="linkAirRevenue">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">维护费</span>
+                                <span class="stat-value cost" id="linkAirMaintenance">25000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="link-actions">
+                        <button class="action-btn buy" onclick="purchaseLink('air')">购买 (500,000元)</button>
+                    </div>
+                </div>
+
+                <!-- 航运 -->
+                <div class="link-item" data-type="shipping">
+                    <div class="link-header">
+                        <span class="link-icon">🚢</span>
+                        <span class="link-name">航运码头</span>
+                        <span class="link-count">× <span id="linkShippingCount">0</span></span>
+                    </div>
+                    <div class="link-details">
+                        <div class="detail-row">
+                            <span class="detail-label">容量</span>
+                            <span class="detail-value" id="linkShippingCapacity">500</span>
+                            <span class="detail-unit">人/小时</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">使用率</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="linkShippingUsage" style="width:40%"></div>
+                            </div>
+                            <span class="detail-value">40%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">票价</span>
+                            <input type="number" class="price-edit" id="editShippingTicket" value="50" min="10" max="500" onchange="updateLinkPrice('shipping', 'ticket', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">港口费</span>
+                            <input type="number" class="price-edit" id="editShippingToll" value="30" min="0" max="200" onchange="updateLinkPrice('shipping', 'toll', this.value)">
+                            <span class="detail-unit">元</span>
+                        </div>
+                        <div class="detail-row stats">
+                            <div class="stat-item">
+                                <span class="stat-label">月客流</span>
+                                <span class="stat-value" id="linkShippingUsers">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">月收入</span>
+                                <span class="stat-value" id="linkShippingRevenue">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">维护费</span>
+                                <span class="stat-value cost" id="linkShippingMaintenance">5000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="link-actions">
+                        <button class="action-btn buy" onclick="purchaseLink('shipping')">购买 (100,000元)</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 服务设施管理弹窗 -->
+    <div class="modal-overlay" id="facilitiesModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <span class="modal-title">🏭 服务设施管理</span>
+                <button class="modal-close" onclick="closeModal('facilities')">×</button>
+            </div>
+            <div class="modal-body facilities-content">
+            <!-- 能源状态概览 -->
+            <div class="energy-overview">
+                <div class="energy-header">
+                    <span class="energy-title">⚡ 能源状态</span>
+                    <span class="energy-alert" id="energyAlertLevel">正常</span>
+                </div>
+                <div class="energy-grid">
+                    <div class="energy-card supply">
+                        <div class="energy-label">发电量</div>
+                        <div class="energy-value" id="energySupply">0</div>
+                        <div class="energy-unit">MW</div>
+                    </div>
+                    <div class="energy-card consumption">
+                        <div class="energy-label">消耗量</div>
+                        <div class="energy-value" id="energyConsumption">0</div>
+                        <div class="energy-unit">MW</div>
+                    </div>
+                    <div class="energy-card balance">
+                        <div class="energy-label">净能源</div>
+                        <div class="energy-value" id="energyBalance">0</div>
+                        <div class="energy-unit">MW</div>
+                    </div>
+                    <div class="energy-card efficiency">
+                        <div class="energy-label">能源效率</div>
+                        <div class="energy-value" id="energyEfficiency">100%</div>
+                        <div class="energy-unit"></div>
+                    </div>
+                </div>
+                <!-- 能源仪表 -->
+                <div class="energy-gauge">
+                    <div class="gauge-bar">
+                        <div class="gauge-fill" id="energyGaugeFill"></div>
+                        <div class="gauge-marks">
+                            <span>0%</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span>75%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选器 -->
+            <div class="facilities-filter">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterFacilities('power')">⚡ 发电设施</button>
+                    <button class="filter-tab" onclick="filterFacilities('services')">🏥 公共服务</button>
+                    <button class="filter-tab" onclick="filterFacilities('commercial')">🏬 商业设施</button>
+                </div>
+                <div class="filter-subcategories" id="filterSubcategories"></div>
+            </div>
+
+            <!-- 设施列表 -->
+            <div class="facilities-list" id="facilitiesList">
+                <!-- 设施卡片动态生成 -->
+            </div>
+
+            <!-- 财政报表 -->
+            <div class="finance-report">
+                <div class="report-header">
+                    <span class="report-title">📊 设施财政报表</span>
+                    <div class="report-period">
+                        <button class="period-btn active" onclick="updateFinancePeriod('day')">日</button>
+                        <button class="period-btn" onclick="updateFinancePeriod('week')">周</button>
+                        <button class="period-btn" onclick="updateFinancePeriod('month')">月</button>
+                    </div>
+                </div>
+                <div class="report-content">
+                    <div class="report-grid">
+                        <div class="report-card revenue">
+                            <div class="report-label">设施总收入</div>
+                            <div class="report-value" id="facilityRevenue">0</div>
+                            <div class="report-unit">元</div>
+                        </div>
+                        <div class="report-card cost">
+                            <div class="report-label">维护总成本</div>
+                            <div class="report-value" id="facilityMaintenance">0</div>
+                            <div class="report-unit">元</div>
+                        </div>
+                        <div class="report-card profit">
+                            <div class="report-label">净收益</div>
+                            <div class="report-value" id="facilityProfit">0</div>
+                            <div class="report-unit">元</div>
+                        </div>
+                        <div class="report-card roi">
+                            <div class="report-label">投资回收期</div>
+                            <div class="report-value" id="facilityROI">--</div>
+                            <div class="report-unit">月</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 引入脚本 -->
+    <script src="js/astronomy.js"></script>
+    <script src="js/finance.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/policies.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // 页面加载完成后初始化游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

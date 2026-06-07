@@ -1,0 +1,52 @@
+Uncaught TypeError: can't access property "classList", document.getElementById(...) is null
+    updateDisplay file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/ui.js:19
+    initGame file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:50
+    <anonymous> file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:390
+ui.js:19:18
+Uncaught TypeError: can't access property "classList", document.getElementById(...) is null
+    updateDisplay file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/ui.js:19
+    initGame file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:50
+    EventListener.handleEvent* file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:920
+ui.js:19:18
+Uncaught TypeError: can't access property "classList", document.getElementById(...) is null
+    updateDisplay file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/ui.js:19
+    startGame file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:110
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+ui.js:19:18
+Timer started with interval: 500ms app.js:158:17
+simulateTime error: ReferenceError: attractiveness is not defined
+    simulateRealTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:1121
+    simulateTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:934
+    autoTimer file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:148
+    setInterval handler*toggleTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:146
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+game.js:980:17
+simulateTime error: ReferenceError: attractiveness is not defined
+    simulateRealTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:1121
+    simulateTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:934
+    autoTimer file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:148
+    setInterval handler*toggleTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:146
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+game.js:980:17
+simulateTime error: ReferenceError: attractiveness is not defined
+    simulateRealTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:1121
+    simulateTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:934
+    autoTimer file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:148
+    setInterval handler*toggleTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:146
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+game.js:980:17
+simulateTime error: ReferenceError: attractiveness is not defined
+    simulateRealTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:1121
+    simulateTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:934
+    autoTimer file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:148
+    setInterval handler*toggleTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:146
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+game.js:980:17
+simulateTime error: ReferenceError: attractiveness is not defined
+    simulateRealTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:1121
+    simulateTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/game.js:934
+    autoTimer file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:148
+    setInterval handler*toggleTime file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/js/app.js:146
+    onclick file:///E:/#SavedFiles/EndlessCityCore/ProjectCode/EndlessCityLight/index.html:1
+game.js:980:17
+Timer stopped app.js:163:21
